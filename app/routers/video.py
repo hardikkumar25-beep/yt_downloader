@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from ..schema.video import VideoDownloadRequest,VideoInfoRequest
-from ..services.downloader import download_video,get_video_info
+from ..services.video_downloader import download_video,get_video_info
 
 router = APIRouter(prefix="/video",tags=["Video"])
 
