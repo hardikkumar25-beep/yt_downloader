@@ -89,47 +89,126 @@ function displayVideoInfo(data) {
         });
 }
 async function downloadVideo() {
-    const url = document.getElementById("video-url").value;
-    const quality = document.getElementById("video-quality").value;
 
-    showStatus("Downloading video...");
+    const url =
+        document.getElementById("video-url").value;
 
-    const response = await fetch("/video/download", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            url: url,
-            quality: quality,
-            format: "mp4"
-        })
-    });
+    const quality =
+        document.getElementById("video-quality").value;
 
-    if (!response.ok) {
-        const error = await response.json();
-        showStatus(error.detail || "Download failed.");
+    if (!url) {
+        showStatus("Please enter a video URL");
         return;
     }
 
-    const blob = await response.blob();
+    showProgress("Starting download...");
 
-    const downloadUrl = URL.createObjectURL(blob);
+    try {
 
-    const a = document.createElement("a");
-    a.href = downloadUrl;
-    a.download = "video.mp4";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+        const response = await fetch(
+            "/video/download",
+            {
+                method: "POST",
 
-    URL.revokeObjectURL(downloadUrl);
+                headers: {
+                    "Content-Type": "application/json"
+                },
 
-    showStatus("Download complete.");
+                body: JSON.stringify({
+                    url: url,
+                    quality: quality,
+                    format: "mp4"
+                })
+            }
+        );
+
+        if (!response.ok) {
+
+            const error = await response.json();
+
+            throw new Error(
+                error.detail || "Download failed."
+            );
+        }
+
+        const data = await response.json();
+
+        const jobId = data.job_id;
+
+        await monitorVideoDownload(jobId);
+
+    } catch (error) {
+
+        console.error(error);
+
+        showStatus(
+            `Download failed: ${error.message}`
+        );
+    }
 }
+
+async function monitorVideoDownload(jobId) {
+
+    while (true) {
+
+        const response = await fetch(
+            `/video/progress/${jobId}`
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                "Could not get download progress."
+            );
+        }
+
+        const job = await response.json();
+
+        updateProgress(
+            job.progress,
+            job.message
+        );
+
+        if (job.status === "completed") {
+
+            const downloadUrl =
+                `/video/download/${jobId}`;
+
+            const a =
+                document.createElement("a");
+
+            a.href = downloadUrl;
+
+            document.body.appendChild(a);
+
+            a.click();
+
+            a.remove();
+
+            updateProgress(
+                100,
+                "Download complete."
+            );
+
+            return;
+        }
+
+        if (job.status === "failed") {
+
+            throw new Error(
+                job.error || "Download failed."
+            );
+        }
+
+        await new Promise(
+            resolve => setTimeout(resolve, 1000)
+        );
+    }
+}
+
 document
     .getElementById("video-download-btn")
     .addEventListener("click", downloadVideo);
+    
 function formatDuration(seconds) {
 
     if (!seconds) {
