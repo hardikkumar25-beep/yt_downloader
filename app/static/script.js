@@ -145,75 +145,6 @@ function formatDuration(seconds) {
     return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
 }
 
-const videoDownloadBtn =
-    document.getElementById("video-download-btn");
-
-
-videoDownloadBtn.addEventListener("click", async () => {
-
-    const url =
-        document.getElementById("video-url").value;
-
-    const quality =
-        document.getElementById("video-quality").value;
-
-
-    showStatus("Downloading video...");
-
-
-    try {
-
-        const response = await fetch(
-            "/video/download",
-            {
-
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-                    url: url,
-                    quality: quality,
-                    format: "mp4"
-                })
-
-            }
-        );
-
-
-        if (!response.ok) {
-            let errorMessage = "Download failed.";
-
-            try {
-                const error = await response.json();
-                errorMessage = error.detail || errorMessage;
-            } catch {
-                // Server didn't return JSON
-            }
-
-            showStatus(errorMessage);
-            throw new Error(errorMessage);
-        }
-
-
-        const data = await response.json();
-
-        console.log(data);
-
-        showStatus("Download completed");
-
-    } catch (error) {
-
-        console.error(error);
-
-        showStatus("Download failed");
-
-    }
-
-});
-
 const playlistInfoBtn =
     document.getElementById("playlist-info-btn");
 
@@ -316,4 +247,137 @@ function displayPlaylist(data) {
 }
 function showStatus(message) {
     document.getElementById("status").textContent = message;
+}
+const playlistDownloadBtn =
+    document.getElementById("playlist-download-btn");
+
+
+playlistDownloadBtn.addEventListener("click", async () => {
+
+    const url =
+        document.getElementById("playlist-url").value;
+
+    const quality =
+        document.getElementById("playlist-quality").value;
+
+
+    if (!url) {
+        showStatus("Please enter a playlist URL");
+        return;
+    }
+
+
+    showStatus("Downloading playlist...");
+
+
+    try {
+
+        const response = await fetch(
+            "/video/playlist/download",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    url: url,
+                    quality: quality
+                })
+            }
+        );
+
+
+        if (!response.ok) {
+
+            let errorMessage =
+                "Playlist download failed.";
+
+            try {
+                const error =
+                    await response.json();
+
+                errorMessage =
+                    error.detail || errorMessage;
+
+            } catch {
+                // Server did not return JSON
+            }
+
+            throw new Error(errorMessage);
+        }
+
+
+        const blob =
+            await response.blob();
+
+
+        const downloadUrl =
+            URL.createObjectURL(blob);
+
+
+        const a =
+            document.createElement("a");
+
+        a.href = downloadUrl;
+        a.download = "playlist.zip";
+
+        document.body.appendChild(a);
+
+        a.click();
+
+        a.remove();
+
+        URL.revokeObjectURL(downloadUrl);
+
+
+        showStatus("Playlist download complete.");
+
+    } catch (error) {
+
+        console.error(error);
+
+        showStatus(
+            `Download failed: ${error.message}`
+        );
+    }
+
+});
+
+function showProgress(message = "Downloading...") {
+    const container =
+        document.getElementById("progress-container");
+
+    container.classList.remove("hidden");
+
+    document.getElementById("progress-text")
+        .textContent = message;
+
+    document.getElementById("progress-percent")
+        .textContent = "0%";
+
+    document.getElementById("progress-fill")
+        .style.width = "0%";
+}
+
+
+function updateProgress(percent, message = "Downloading...") {
+    percent = Math.max(0, Math.min(100, percent));
+
+    document.getElementById("progress-text")
+        .textContent = message;
+
+    document.getElementById("progress-percent")
+        .textContent = `${Math.round(percent)}%`;
+
+    document.getElementById("progress-fill")
+        .style.width = `${percent}%`;
+}
+
+
+function hideProgress() {
+    document
+        .getElementById("progress-container")
+        .classList.add("hidden");
 }
