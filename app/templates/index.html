@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Video Downloader</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+    <main class="container">
+
+        <h1>Video Downloader</h1>
+
+        <p class="subtitle">
+            Download videos for personal use
+        </p>
+
+
+        <!-- SINGLE VIDEO -->
+
+        <section class="card">
+
+            <h2>Download Video</h2>
+
+            <div class="input-group">
+                <input
+                    type="text"
+                    id="video-url"
+                    placeholder="Paste video URL..."
+                >
+
+                <button id="video-info-btn">
+                    Get Video
+                </button>
+            </div>
+
+
+            <div id="video-result" class="result hidden">
+
+                <img
+                    id="video-thumbnail"
+                    class="thumbnail"
+                    src=""
+                    alt="Video thumbnail"
+                >
+
+                <div class="video-details">
+
+                    <h3 id="video-title"></h3>
+
+                    <p id="video-duration"></p>
+
+                    <label for="video-quality">
+                        Quality
+                    </label>
+
+                    <select id="video-quality"></select>
+
+                    <button id="video-download-btn">
+                        Download
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- PLAYLIST -->
+
+        <section class="card">
+
+            <h2>Download Playlist</h2>
+
+            <div class="input-group">
+
+                <input
+                    type="text"
+                    id="playlist-url"
+                    placeholder="Paste playlist URL..."
+                >
+
+                <button id="playlist-info-btn">
+                    Get Playlist
+                </button>
+
+            </div>
+
+
+            <div id="playlist-result" class="result hidden">
+
+                <h3 id="playlist-title"></h3>
+
+                <p id="playlist-count"></p>
+
+                <div id="playlist-videos"></div>
+
+                <label for="playlist-quality">
+                    Quality
+                </label>
+
+                <select id="playlist-quality">
+
+                    <option value="360p">360p</option>
+                    <option value="480p">480p</option>
+                    <option value="720p">720p</option>
+                    <option value="1080p">1080p</option>
+
+                </select>
+
+                <button id="playlist-download-btn">
+                    Download Playlist
+                </button>
+
+            </div>
+
+        </section>
+
+        <p id="status"></p>
+
+    </main>
+
+    <script src="/static/script.js"></script>
+
+</body>
+
+</html>
