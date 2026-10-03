@@ -1,5 +1,6 @@
 import yt_dlp
 from pathlib import Path
+from yt_dlp.utils import DownloadError
 
 DOWNLOAD_DIR = Path("downloads")
 DOWNLOAD_DIR.mkdir(exist_ok=True)
@@ -25,9 +26,11 @@ def get_video_info(url: str):
         "no_warnings": True,
         "skip_download": True,
     }
-
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url, download=False)
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+    except DownloadError as e:
+        raise ValueError(str(e))
 
     qualities = set()
 
