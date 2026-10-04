@@ -51,20 +51,30 @@ def download_playlist(url: str,quality: str = "1080p",job_id:str | None =None):
                 overall_prog=((current_vids-1+current_prog/100)/total_vids)*100
             else:
                 overall_prog=current_prog
-            update_job(job_id,status="downloading",progress=overall_prog,message=(f"Downloading video" f"{current_vids} of"f"{total_vids}"),current_video=current_vids,total_videos=total_vids)
+            update_job(job_id,status="downloading",progress=overall_prog,message=(f"Downloading video" f"{current_vids} of "f"{total_vids}"),current_video=current_vids,total_videos=total_vids)
         elif data["status"]=="finished":
             current_vids+=1
             if total_vids>0:
                 overall_prog=(current_vids/total_vids)*100
             else:
                 overall_prog=100
-            update_job(job_id,status="downloading",progress=overall_prog,message=(f"Finished video" f"{current_vids} of"f"{total_vids}"),current_video=current_vids,total_videos=total_vids)
+            update_job(job_id,status="downloading",progress=overall_prog,message=(f"Finished video" f"{current_vids} of "f"{total_vids}"),current_video=current_vids,total_videos=total_vids)
     ydl_opts = {
-        "format": f"bestvideo[height<={height}]+bestaudio/best",
+        "format": (
+            f"bestvideo[height<={height}][vcodec^=avc1]"
+            "+bestaudio[acodec^=mp4a]/"
+            f"best[height<={height}][vcodec^=avc1][acodec^=mp4a]"
+        ),
+
         "merge_output_format": "mp4",
-        "outtmpl": "downloads/%(playlist_title)s/%(playlist_index)s - %(title)s.%(ext)s",
+        "outtmpl": str(
+            DOWNLOAD_DIR
+            / "%(playlist_title)s"
+            / "%(playlist_index)s - %(title)s.%(ext)s"
+        ),
         "noplaylist": False,
-        "progress_hooks":[progress_hook]}
+        "progress_hooks": [progress_hook],
+    }
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)

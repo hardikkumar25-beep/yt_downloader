@@ -15,9 +15,9 @@ def playlist_info(request: PlaylistInfoRequest):
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/download")
-def playlist_download(request: PlaylistDownloadRequest,backround_tasks:BackgroundTasks):
+def playlist_download(request: PlaylistDownloadRequest,background_tasks:BackgroundTasks):
     job_id=create_job()
-    backround_tasks(download_playlist,request.url,request.quality,job_id)
+    background_tasks.add_task(download_playlist,request.url,request.quality,job_id)
     return {"job_id":job_id}
 
 @router.get("/progress/{job_id}")
