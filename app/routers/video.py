@@ -1,9 +1,12 @@
 from fastapi import APIRouter,HTTPException,BackgroundTasks
 from ..schema.video import VideoDownloadRequest,VideoInfoRequest
 from fastapi.responses import FileResponse
+from yt_dlp.utils import DownloadError
 from ..services.video_downloader import download_video,get_video_info
+from app.services.playlist_downloader import friendly_ytdlp_error
 from ..services.job_manager import update_job,get_job,create_job
 import os
+import re
 from pathlib import Path
 
 router = APIRouter(prefix="/video",tags=["Video"])
@@ -40,5 +43,5 @@ def download_complete_vid(job_id:str):
 def vid_info(request:VideoInfoRequest):
     try:
         return get_video_info(request.url)
-    except ValueError as e:
-        raise HTTPException(status_code=400,detail=str(e))
+    except (ValueError,DownloadError) as e:
+        raise HTTPException(status_code=400,detail=friendly_ytdlp_error(e))

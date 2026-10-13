@@ -24,22 +24,29 @@ videoInfoBtn.addEventListener("click", async () => {
                 url: url
             })
         });
-
         if (!response.ok) {
-            throw new Error("Failed to get video information");
+            let message = "Failed to get video information";
+
+            try {
+                const errorData = await response.json();
+                message = errorData.detail || message;
+            } catch (parseError) {
+                console.error("Could not parse error response:", parseError);
+            }
+
+            throw new Error(message);
         }
 
         const data = await response.json();
 
         displayVideoInfo(data);
-
         showStatus("");
 
     } catch (error) {
 
-        console.error(error);
+        console.error("Video info error:", error);
 
-        showStatus("Something went wrong");
+        showStatus(`Error: ${error.message || "Could not get video information."}`);
     }
 });
 
@@ -271,9 +278,17 @@ playlistInfoBtn.addEventListener("click", async () => {
 
 
         if (!response.ok) {
-            throw new Error("Failed to get playlist");
-        }
+            let message = "Failed to get playlist information.";
 
+            try {
+                const erdata = await response.json();
+                message = erdata.detail || message;
+            } catch (parseError) {
+                console.error("Could not parse error response:", parseError);
+            }
+
+            throw new Error(message);
+        }
 
         const data = await response.json();
 
@@ -286,7 +301,7 @@ playlistInfoBtn.addEventListener("click", async () => {
 
         console.error(error);
 
-        showStatus("Could not load playlist");
+        showStatus(`Error: ${error.message || "Could not load playlist."}`);
     }
 
 });
@@ -294,6 +309,7 @@ playlistInfoBtn.addEventListener("click", async () => {
 
 function displayPlaylist(data) {
 
+    
     document
         .getElementById("playlist-result")
         .classList.remove("hidden");

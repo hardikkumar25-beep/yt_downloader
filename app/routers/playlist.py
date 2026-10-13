@@ -2,8 +2,11 @@ from fastapi import APIRouter,HTTPException,BackgroundTasks
 from fastapi.responses import FileResponse
 from pathlib import Path
 from ..schema.video import PlaylistDownloadRequest,PlaylistInfoRequest
+from yt_dlp.utils import DownloadError
 from ..services.playlist_downloader import download_playlist,get_playlist_info
 from ..services.job_manager import get_job,create_job
+from app.services.playlist_downloader import friendly_ytdlp_error
+import re
 
 router = APIRouter(prefix="/video/playlist",tags=["Playlist"])
 
@@ -11,8 +14,8 @@ router = APIRouter(prefix="/video/playlist",tags=["Playlist"])
 def playlist_info(request: PlaylistInfoRequest):
     try:
         return get_playlist_info(request.url)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except (ValueError,DownloadError) as e:
+        raise HTTPException(status_code=400,detail=friendly_ytdlp_error(e))
 
 @router.post("/download")
 def playlist_download(request: PlaylistDownloadRequest,background_tasks:BackgroundTasks):

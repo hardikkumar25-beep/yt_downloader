@@ -3,6 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app.routers.playlist import router as playlist_router
 from app.routers.video import router as video_router
+from pathlib import Path
 
 app = FastAPI(title="Video Downloader",version="1.0.0")
 

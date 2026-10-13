@@ -2,6 +2,7 @@ import shutil
 from pathlib import Path
 import yt_dlp
 from .job_manager import update_job
+import re
 
 DOWNLOAD_DIR = Path("downloads")
 DOWNLOAD_DIR.mkdir(exist_ok=True)
@@ -31,6 +32,17 @@ def get_playlist_info(url: str):
         "video_count": len(videos),
         "videos": videos,
     }
+
+def friendly_ytdlp_error(error):
+    message = re.sub(r"\x1b\[[0-9;]*m","",str(error))
+    lower_message = message.lower()
+    if "private video" in lower_message:
+        return ("This video is private. You need permission ""to access it.")
+    if "sign in" in lower_message or "login required" in lower_message:
+        return ("YouTube requires you to sign in to access ""this video.")
+    if "unsupported url" in lower_message:
+        return "Invalid YouTube URL. Please check the link."
+    return "Could not access this video. It may be private, restricted, or unavailable."
 
 def download_playlist(url: str,quality: str = "1080p",job_id:str | None =None):
     height = quality.replace("p", "")
