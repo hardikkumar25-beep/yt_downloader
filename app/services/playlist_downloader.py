@@ -2,36 +2,49 @@ import shutil
 from pathlib import Path
 import yt_dlp
 from .job_manager import update_job
+from yt_dlp.utils import DownloadError
+from urllib.parse import urlparse, parse_qs
 import re
 
 DOWNLOAD_DIR = Path("downloads")
 DOWNLOAD_DIR.mkdir(exist_ok=True)
 
 def get_playlist_info(url: str):
+    parsed = urlparse(url)
+    params = parse_qs(parsed.query)
+    playlist_id = params.get("list", [None])[0]
+    if not playlist_id:
+        raise ValueError("No playlist ID found. Please enter a playlist URL.")
+    playlist_url=(f"https://www.youtube.com/playlist?list={playlist_id}")
     ydl_opts = {
         "quiet": True,
         "no_warnings": True,
         "extract_flat": "in_playlist",
         "skip_download": True,
     }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url, download=False)
-    videos = []
-    for index, entry in enumerate(info.get("entries") or [], start=1):
-        if not entry:
-            continue
-        videos.append({
-            "index": index,
-            "id": entry.get("id"),
-            "title": entry.get("title"),
-            "url": entry.get("url"),
-        })
-    return {
-        "playlist_title": info.get("title"),
-        "playlist_id": info.get("id"),
-        "video_count": len(videos),
-        "videos": videos,
-    }
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+        videos = []
+        for index, entry in enumerate(info.get("entries") or [], start=1):
+            if not entry:
+                continue
+            videos.append({
+                "index": index,
+                "id": entry.get("id"),
+                "title": entry.get("title"),
+                "url": entry.get("url"),
+            })
+        if not videos:
+            raise ValueError("No videos could be retrieved.""The playlist may be private, empty, or inaccessible.")
+        return {
+            "playlist_title": info.get("title"),
+            "playlist_id": info.get("id"),
+            "video_count": len(videos),
+            "videos": videos,
+        }
+    except DownloadError as e:
+        raise ValueError(f"Could not access playlist:{str(e)}") from e
 
 def friendly_ytdlp_error(error):
     message = re.sub(r"\x1b\[[0-9;]*m","",str(error))

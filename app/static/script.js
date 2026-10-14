@@ -308,7 +308,6 @@ playlistInfoBtn.addEventListener("click", async () => {
 
 
 function displayPlaylist(data) {
-
     
     document
         .getElementById("playlist-result")
@@ -332,6 +331,12 @@ function displayPlaylist(data) {
 
     container.innerHTML = "";
 
+    if (!data.videos || data.videos.length === 0) {
+    showStatus(
+        "No videos found. The playlist may be private, unavailable, or the URL may be incorrect."
+    );
+    return;
+}
 
     data.videos.forEach(video => {
 
